@@ -7,7 +7,11 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  output: 'standalone',
+  output: 'export',  // Changed from 'standalone' to 'export' for static site generation
+  images: {
+    unoptimized: true,
+  },
+  trailingSlash: true,  // Add trailing slashes to all routes
 };
 
 export default nextConfig;

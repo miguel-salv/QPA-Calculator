@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash, Upload, Plus, Info } from "lucide-react";
+import { Trash, Upload, Plus, Info, Pencil } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +25,7 @@ interface Semester {
   id: string;
   name: string;
   courses: Course[];
+  isEditing?: boolean;
 }
 
 const gradePoints: { [key: string]: number | null } = {
@@ -145,7 +146,17 @@ const QpaCalculator = () => {
     setSemesters(prevSemesters =>
       prevSemesters.map((semester, idx) =>
         semester.id === semesterId
-          ? { ...semester, name: newName || `Semester ${idx + 1}` }
+          ? { ...semester, name: newName || `Semester ${idx + 1}`, isEditing: false }
+          : semester
+      )
+    );
+  };
+
+  const toggleSemesterEdit = (semesterId: string) => {
+    setSemesters(prevSemesters =>
+      prevSemesters.map(semester =>
+        semester.id === semesterId
+          ? { ...semester, isEditing: !semester.isEditing }
           : semester
       )
     );
@@ -245,7 +256,7 @@ const QpaCalculator = () => {
           </Button>
         </div>
       </div>
-      <ScrollArea className="rounded-md border">
+      <ScrollArea className="rounded-md border h-[calc(100vh-20rem)] relative">
         <div className="flex flex-col gap-4 p-4">
           {semesters.map((semester, index) => {
             const semesterGpa = calculateSemesterGpa(semester.courses);
@@ -253,13 +264,29 @@ const QpaCalculator = () => {
             <Card key={semester.id} className="mb-4">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[48px]">
                 <div className="flex items-center space-x-4 w-full">
-                  <Input
-                    type="text"
-                    value={semester.name}
-                    onChange={(e) => updateSemesterName(semester.id, e.target.value)}
-                    className="w-1/3 font-semibold"
-                    placeholder={`Semester ${index + 1}`}
-                  />
+                  {semester.isEditing ? (
+                    <Input
+                      type="text"
+                      value={semester.name}
+                      onChange={(e) => updateSemesterName(semester.id, e.target.value)}
+                      className="w-1/3 font-semibold"
+                      placeholder={`Semester ${index + 1}`}
+                      onBlur={() => toggleSemesterEdit(semester.id)}
+                      autoFocus
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-semibold">{semester.name}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleSemesterEdit(semester.id)}
+                        className="h-5 w-5 p-0 hover:bg-transparent opacity-70 hover:opacity-100 transition-opacity"
+                      >
+                        <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground mr-2">Semester GPA:</span>
                     <span className="font-semibold">{semesterGpa}</span>
@@ -297,23 +324,23 @@ const QpaCalculator = () => {
                       <Input
                         type="text"
                         placeholder="Course Name (Optional)"
-                        className="w-1/3"
+                        className="w-1/3 hover:border-primary/50 transition-colors"
                         value={course.name}
                         onChange={(e) => updateCourse(semester.id, course.id, 'name', e.target.value)}
                       />
                       <Input
                         type="number"
                         placeholder="Units"
-                        className="w-1/6"
+                        className="w-1/6 hover:border-primary/50 transition-colors"
                         value={course.units === '' ? '' : String(course.units)}
                         onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
                       />
                       <Select value={course.grade || "NO_GRADE"} onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}>
-                        <SelectTrigger className="w-[120px]">
+                        <SelectTrigger className={cn("w-[120px] hover:border-primary/50 transition-colors", (!course.grade || course.grade === "NO_GRADE") && "text-muted-foreground")}>
                           <SelectValue placeholder="Select Grade" />
                         </SelectTrigger>
-                        <SelectContent position="popper" side="bottom" sideOffset={5}>
-                          <SelectItem value="NO_GRADE">No Grade</SelectItem>
+                        <SelectContent position="popper">
+                          <SelectItem value="NO_GRADE" className="text-muted-foreground">No Grade</SelectItem>
                           {Object.entries(gradePoints)
                             .filter(([grade]) => grade !== "NO_GRADE")
                             .map(([grade]) => (
@@ -321,12 +348,12 @@ const QpaCalculator = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button variant="ghost" size="sm" onClick={() => removeCourse(semester.id, course.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => removeCourse(semester.id, course.id)} className="hover:text-primary transition-colors">
                         <Trash className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
-                  <Button variant="secondary" size="sm" onClick={() => addCourse(semester.id)}>
+                  <Button variant="secondary" size="sm" onClick={() => addCourse(semester.id)} className="hover:text-primary transition-colors">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Course
                   </Button>

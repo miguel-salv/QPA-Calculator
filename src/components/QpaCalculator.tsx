@@ -230,143 +230,147 @@ const QpaCalculator = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 px-4 md:px-0">
       <div className="text-center">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="text-xl md:text-2xl font-semibold">
           Enter Your Academic Information
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           PDF processing happens locally in your browser.
         </p>
-        <div className="mt-4 flex justify-center gap-4">
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileUpload}
-            className="hidden"
-            ref={fileInputRef}
-          />
-          <Button onClick={() => fileInputRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-2" />
-            Import from Academic Record
-          </Button>
-          <Button variant="outline" onClick={addSemester}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Semester Manually
-          </Button>
-        </div>
       </div>
-      <ScrollArea className="rounded-md border h-[calc(100vh-20rem)] relative">
+
+      <div className="mt-4 flex flex-col md:flex-row justify-center gap-4">
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={handleFileUpload}
+          className="hidden"
+          ref={fileInputRef}
+        />
+        <Button className="w-full md:w-auto" onClick={() => fileInputRef.current?.click()}>
+          <Upload className="h-4 w-4 mr-2" />
+          Import from Academic Record
+        </Button>
+        <Button className="w-full md:w-auto" variant="outline" onClick={addSemester}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Semester Manually
+        </Button>
+      </div>
+
+      <ScrollArea className="rounded-md border my-6" style={{ height: 'calc(100vh - 400px)', minHeight: '300px' }}>
         <div className="flex flex-col gap-4 p-4">
           {semesters.map((semester, index) => {
             const semesterGpa = calculateSemesterGpa(semester.courses);
             return (
-            <Card key={semester.id} className="mb-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[48px]">
-                <div className="flex items-center space-x-4 w-full">
-                  {semester.isEditing ? (
-                    <Input
-                      type="text"
-                      value={semester.name}
-                      onChange={(e) => updateSemesterName(semester.id, e.target.value)}
-                      className="w-1/3 font-semibold"
-                      placeholder={`Semester ${index + 1}`}
-                      onBlur={() => toggleSemesterEdit(semester.id)}
-                      autoFocus
-                    />
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{semester.name}</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleSemesterEdit(semester.id)}
-                        className="h-5 w-5 p-0 hover:bg-transparent opacity-70 hover:opacity-100 transition-opacity"
-                      >
-                        <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  )}
-                  <div className="flex items-center">
-                    <span className="text-sm text-muted-foreground mr-2">Semester GPA:</span>
-                    <span className="font-semibold">{semesterGpa}</span>
-                  </div>
-                </div>
-                {semesters.length > 1 ? (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the semester
-                          and all associated course data.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => removeSemester(semester.id)}>Continue</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                ) : (
-                  <div className="w-9 h-9" />
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {semester.courses.map(course => (
-                    <div key={course.id} className="flex items-center space-x-2">
+              <Card key={semester.id} className="mb-4">
+                <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0 pb-2 min-h-[48px]">
+                  <div className="flex items-center space-x-4 w-full">
+                    {semester.isEditing ? (
                       <Input
                         type="text"
-                        placeholder="Course Name (Optional)"
-                        className="w-1/3 hover:border-primary/50 transition-colors"
-                        value={course.name}
-                        onChange={(e) => updateCourse(semester.id, course.id, 'name', e.target.value)}
+                        value={semester.name}
+                        onChange={(e) => updateSemesterName(semester.id, e.target.value)}
+                        className="w-full md:w-1/3 font-semibold"
+                        placeholder={`Semester ${index + 1}`}
+                        onBlur={() => toggleSemesterEdit(semester.id)}
+                        autoFocus
                       />
-                      <Input
-                        type="number"
-                        placeholder="Units"
-                        className="w-1/6 hover:border-primary/50 transition-colors"
-                        value={course.units === '' ? '' : String(course.units)}
-                        onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
-                      />
-                      <Select value={course.grade || "NO_GRADE"} onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}>
-                        <SelectTrigger className={cn("w-[120px] hover:border-primary/50 transition-colors", (!course.grade || course.grade === "NO_GRADE") && "text-muted-foreground")}>
-                          <SelectValue placeholder="Select Grade" />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="NO_GRADE" className="text-muted-foreground">No Grade</SelectItem>
-                          {Object.entries(gradePoints)
-                            .filter(([grade]) => grade !== "NO_GRADE")
-                            .map(([grade]) => (
-                              <SelectItem key={grade} value={grade}>{grade}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="sm" onClick={() => removeCourse(semester.id, course.id)} className="hover:text-primary transition-colors">
-                        <Trash className="h-4 w-4" />
-                      </Button>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-semibold">{semester.name}</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleSemesterEdit(semester.id)}
+                          className="h-5 w-5 p-0 hover:bg-transparent opacity-70 hover:opacity-100 transition-opacity"
+                        >
+                          <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex items-center ml-auto">
+                      <span className="text-sm text-muted-foreground mr-2">Semester GPA:</span>
+                      <span className="font-semibold">{semesterGpa}</span>
                     </div>
-                  ))}
-                  <Button variant="secondary" size="sm" onClick={() => addCourse(semester.id)} className="hover:text-primary transition-colors">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Course
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )})}
+                  </div>
+                  {semesters.length > 1 ? (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the semester
+                            and all associated course data.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => removeSemester(semester.id)}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : (
+                    <div className="w-9 h-9" />
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {semester.courses.map(course => (
+                      <div key={course.id} className="flex flex-col md:flex-row gap-2 md:items-center md:space-x-2">
+                        <Input
+                          type="text"
+                          placeholder="Course Name (Optional)"
+                          className="w-full md:w-1/3 hover:border-primary/50 transition-colors"
+                          value={course.name}
+                          onChange={(e) => updateCourse(semester.id, course.id, 'name', e.target.value)}
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Units"
+                          className="w-full md:w-1/6 hover:border-primary/50 transition-colors"
+                          value={course.units === '' ? '' : String(course.units)}
+                          onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
+                        />
+                        <Select value={course.grade || "NO_GRADE"} onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}>
+                          <SelectTrigger className={cn("w-full md:w-[120px] hover:border-primary/50 transition-colors", (!course.grade || course.grade === "NO_GRADE") && "text-muted-foreground")}>
+                            <SelectValue placeholder="Select Grade" />
+                          </SelectTrigger>
+                          <SelectContent position="popper">
+                            <SelectItem value="NO_GRADE" className="text-muted-foreground">No Grade</SelectItem>
+                            {Object.entries(gradePoints)
+                              .filter(([grade]) => grade !== "NO_GRADE")
+                              .map(([grade]) => (
+                                <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button variant="ghost" size="sm" onClick={() => removeCourse(semester.id, course.id)} className="w-full md:w-auto hover:text-primary transition-colors justify-center">
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button variant="secondary" size="sm" onClick={() => addCourse(semester.id)} className="w-full md:w-auto hover:text-primary transition-colors">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Course
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </ScrollArea>
+
       <Separator />
       <div className="text-center">
-        <h3 className="text-xl font-semibold">Your QPA:</h3>
-        <p className="text-3xl font-bold text-primary">{qpa}</p>
+        <h3 className="text-lg md:text-xl font-semibold">Your QPA:</h3>
+        <p className="text-2xl md:text-3xl font-bold text-primary">{qpa}</p>
       </div>
     </div>
   );

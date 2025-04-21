@@ -98,7 +98,7 @@ export async function parseCMUTranscript(file: File): Promise<SemesterData[]> {
           const courseNumPattern = /^\d{5}$/;
           if (courseNumPattern.test(potentialCourseNum)) {
             const units = parseFloat(potentialUnits);
-            if (!isNaN(units)) {
+            if (!isNaN(units) && units > 0) {
               if (process.env.NODE_ENV === 'development') {
                 console.log('Found course:', 
                   potentialCourseNum, 

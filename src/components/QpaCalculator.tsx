@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash } from "lucide-react";
+import { Trash, Upload, Plus, Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { toast } from "@/hooks/use-toast"
+import { parseCMUTranscript } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface Course {
   id: string;
@@ -25,34 +27,49 @@ interface Semester {
   courses: Course[];
 }
 
-const gradePoints: { [key: string]: number } = {
+const gradePoints: { [key: string]: number | null } = {
   "A": 4.0,
   "B": 3.0,
   "C": 2.0,
   "D": 1.0,
-  "R": 0.0,
+  "F": 0.0,
+  "NO_GRADE": null
 };
 
-const defaultSemesterName = "Semester";
+const calculateSemesterGpa = (courses: Course[]): number => {
+  let totalQualityPoints = 0;
+  let totalFactorableUnits = 0;
+  
+  courses.forEach(course => {
+    const points = gradePoints[course.grade];
+    const units = typeof course.units === 'string' ? parseFloat(course.units) : course.units;
+    if (points !== null && points !== undefined && units !== undefined && !isNaN(units)) {
+      totalQualityPoints += units * points;
+      totalFactorableUnits += units;
+    }
+  });
+
+  if (totalFactorableUnits === 0) return 0.0;
+  return parseFloat((totalQualityPoints / totalFactorableUnits).toFixed(2));
+};
 
 const QpaCalculator = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [qpa, setQpa] = useState<number>(0.0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const storedSemesters = localStorage.getItem('semesters');
     if (storedSemesters) {
       setSemesters(JSON.parse(storedSemesters));
     } else {
-      // Initialize with one default semester
-      setSemesters([{ id: crypto.randomUUID(), name: defaultSemesterName, courses: [] }]);
+      setSemesters([{ id: crypto.randomUUID(), name: `Semester 1`, courses: [] }]);
     }
   }, []);
 
   useEffect(() => {
     localStorage.setItem('semesters', JSON.stringify(semesters));
     calculateQpa();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [semesters]);
 
   const addSemester = () => {
@@ -60,7 +77,7 @@ const QpaCalculator = () => {
       ...prevSemesters,
       {
         id: crypto.randomUUID(),
-        name: defaultSemesterName,
+        name: `Semester ${prevSemesters.length + 1}`,
         courses: [],
       }
     ]);
@@ -85,7 +102,7 @@ const QpaCalculator = () => {
                 id: crypto.randomUUID(),
                 name: '',
                 units: '',
-                grade: 'A',
+                grade: 'NO_GRADE'
               }
             ],
           }
@@ -124,22 +141,30 @@ const QpaCalculator = () => {
     );
   };
 
+  const updateSemesterName = (semesterId: string, newName: string) => {
+    setSemesters(prevSemesters =>
+      prevSemesters.map((semester, idx) =>
+        semester.id === semesterId
+          ? { ...semester, name: newName || `Semester ${idx + 1}` }
+          : semester
+      )
+    );
+  };
+
   const calculateQpa = useCallback(() => {
     let totalQualityPoints = 0;
     let totalFactorableUnits = 0;
-
     semesters.forEach(semester => {
       semester.courses.forEach(course => {
         const points = gradePoints[course.grade];
         const units = typeof course.units === 'string' ? parseFloat(course.units) : course.units;
-
-        if (points !== undefined && units !== undefined && !isNaN(units)) {
+        // Only factor in grades that have numeric grade points (excludes P, R, W, N)
+        if (points !== null && points !== undefined && units !== undefined && !isNaN(units)) {
           totalQualityPoints += units * points;
           totalFactorableUnits += units;
         }
       });
     });
-
     if (totalFactorableUnits === 0) {
       setQpa(0.0);
     } else {
@@ -151,6 +176,47 @@ const QpaCalculator = () => {
     updateCourse(semesterId, courseId, 'units', value === '' ? '' : parseFloat(value));
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        throw new Error('Please upload a PDF file');
+      }
+      const parsedSemesters = await parseCMUTranscript(file);
+      if (parsedSemesters.length === 0) {
+        throw new Error('No semester data found. Please make sure this is a CMU academic record PDF.');
+      }
+      const newSemesters = parsedSemesters.map(sem => ({
+        id: crypto.randomUUID(),
+        name: sem.name,
+        courses: sem.courses.map(course => ({
+          id: crypto.randomUUID(),
+          name: course.name,
+          units: course.units,
+          grade: course.grade
+        }))
+      }));
+      if (newSemesters.some(sem => sem.courses.length === 0)) {
+        throw new Error('Some semesters have no courses. Please make sure the PDF is properly formatted.');
+      }
+      setSemesters(newSemesters);
+      toast({
+        title: "Success",
+        description: `Imported ${newSemesters.length} semesters with ${newSemesters.reduce((acc, sem) => acc + sem.courses.length, 0)} courses from your academic record.`,
+      });
+    } catch (error) {
+      console.error('Error parsing PDF:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to parse the academic record. Please make sure you uploaded a valid CMU academic record PDF.",
+        variant: "destructive",
+      });
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12">
@@ -159,18 +225,46 @@ const QpaCalculator = () => {
           Enter Your Academic Information
         </h2>
         <p className="text-muted-foreground">
-          Add semesters and courses to calculate your QPA.
+          PDF processing happens locally in your browser.
         </p>
+        <div className="mt-4 flex justify-center gap-4">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileUpload}
+            className="hidden"
+            ref={fileInputRef}
+          />
+          <Button onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import from Academic Record
+          </Button>
+          <Button variant="outline" onClick={addSemester}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Semester Manually
+          </Button>
+        </div>
       </div>
-
       <ScrollArea className="rounded-md border">
         <div className="flex flex-col gap-4 p-4">
-          {semesters.map((semester, index) => (
+          {semesters.map((semester, index) => {
+            const semesterGpa = calculateSemesterGpa(semester.courses);
+            return (
             <Card key={semester.id} className="mb-4">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[48px]">
-                <CardTitle>
-                  {`Semester ${index + 1}`}
-                </CardTitle>
+                <div className="flex items-center space-x-4 w-full">
+                  <Input
+                    type="text"
+                    value={semester.name}
+                    onChange={(e) => updateSemesterName(semester.id, e.target.value)}
+                    className="w-1/3 font-semibold"
+                    placeholder={`Semester ${index + 1}`}
+                  />
+                  <div className="flex items-center">
+                    <span className="text-sm text-muted-foreground mr-2">Semester GPA:</span>
+                    <span className="font-semibold">{semesterGpa}</span>
+                  </div>
+                </div>
                 {semesters.length > 1 ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -214,13 +308,16 @@ const QpaCalculator = () => {
                         value={course.units === '' ? '' : String(course.units)}
                         onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
                       />
-                      <Select value={course.grade} onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value)}>
+                      <Select value={course.grade || "NO_GRADE"} onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}>
                         <SelectTrigger className="w-[120px]">
-                          <SelectValue placeholder="Grade" />
+                          <SelectValue placeholder="Select Grade" />
                         </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(gradePoints).map(grade => (
-                            <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                        <SelectContent position="popper" side="bottom" sideOffset={5}>
+                          <SelectItem value="NO_GRADE">No Grade</SelectItem>
+                          {Object.entries(gradePoints)
+                            .filter(([grade]) => grade !== "NO_GRADE")
+                            .map(([grade]) => (
+                              <SelectItem key={grade} value={grade}>{grade}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -236,17 +333,10 @@ const QpaCalculator = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )})}
         </div>
       </ScrollArea>
-
-      <Button onClick={addSemester} className="w-full">
-        <Plus className="h-4 w-4 mr-2" />
-        Add Semester
-      </Button>
-
       <Separator />
-
       <div className="text-center">
         <h3 className="text-xl font-semibold">Your QPA:</h3>
         <p className="text-3xl font-bold text-primary">{qpa}</p>

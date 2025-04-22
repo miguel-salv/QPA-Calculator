@@ -75,15 +75,6 @@ const QpaCalculator = () => {
     calculateQpa();
   }, [semesters]);
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      if (scrollContainerRef.current) {
-        const scrollContainer = scrollContainerRef.current;
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
-    }, 100); // Small delay to ensure the DOM has updated
-  };
-
   const addSemester = () => {
     setSemesters(prevSemesters => [
       ...prevSemesters,
@@ -93,9 +84,6 @@ const QpaCalculator = () => {
         courses: [],
       }
     ]);
-    
-    // Scroll to the bottom after adding a semester
-    scrollToBottom();
   };
 
   const removeSemester = (id: string) => {
@@ -248,7 +236,7 @@ const QpaCalculator = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 px-4 sm:px-6 md:px-0">
+    <div className="w-full mx-auto space-y-6 pb-12">
       <div className="max-w-2xl mx-auto text-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 pt-2">
         <p className="text-sm sm:text-base text-muted-foreground font-medium">
           Enter your courses and grades to calculate your Quality Point Average.
@@ -282,7 +270,7 @@ const QpaCalculator = () => {
       </div>
 
       <ScrollArea 
-        className="rounded-md border my-4 sm:my-6" 
+        className="rounded-md border my-4 sm:my-6 mx-auto" 
         style={{ 
           height: 'min(calc(100vh - 400px), 600px)',
           minHeight: '100px',
@@ -398,9 +386,9 @@ const QpaCalculator = () => {
       </ScrollArea>
 
       <Separator className="my-4 sm:my-6" />
-      <div className="text-center mb-4 mt-2">
-        <h3 className="text-base sm:text-lg md:text-xl font-semibold">Your QPA:</h3>
-        <p className="text-2xl md:text-3xl font-bold text-primary">{qpa}</p>
+      <div className="text-center flex flex-col items-center justify-center mb-4 mt-2">
+        <h3 className="text-base sm:text-lg md:text-xl font-semibold text-center">Your QPA:</h3>
+        <p className="text-2xl md:text-3xl font-bold text-primary text-center">{qpa}</p>
       </div>
     </div>
   );

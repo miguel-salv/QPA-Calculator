@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash, Upload, Plus, Info, Pencil } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -13,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { toast } from "@/hooks/use-toast"
 import { parseCMUTranscript } from '@/lib/utils';
 import { cn } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui/custom-select";
 
 interface Course {
   id: string;
@@ -58,6 +58,8 @@ const QpaCalculator = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [qpa, setQpa] = useState<number>(0.0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const storedSemesters = localStorage.getItem('semesters');
@@ -73,6 +75,15 @@ const QpaCalculator = () => {
     calculateQpa();
   }, [semesters]);
 
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      if (scrollContainerRef.current) {
+        const scrollContainer = scrollContainerRef.current;
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+      }
+    }, 100); // Small delay to ensure the DOM has updated
+  };
+
   const addSemester = () => {
     setSemesters(prevSemesters => [
       ...prevSemesters,
@@ -82,11 +93,18 @@ const QpaCalculator = () => {
         courses: [],
       }
     ]);
+    
+    // Scroll to the bottom after adding a semester
+    scrollToBottom();
   };
 
   const removeSemester = (id: string) => {
     setSemesters(prevSemesters => {
       const updatedSemesters = prevSemesters.filter(semester => semester.id !== id);
+      // If we're removing the last semester, add a new empty one
+      if (updatedSemesters.length === 0) {
+        return [{ id: crypto.randomUUID(), name: 'Semester 1', courses: [] }];
+      }
       return updatedSemesters;
     });
   };
@@ -231,12 +249,10 @@ const QpaCalculator = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 pb-12 px-4 md:px-0">
-      <div className="text-center">
-        <h2 className="text-xl md:text-2xl font-semibold">
-          Enter Your Academic Information
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground">
-          PDF processing happens locally in your browser.
+      <div className="max-w-2xl mx-auto text-center space-y-4 mb-8 pt-2">
+        <p className="text-sm md:text-base text-muted-foreground font-medium">
+          Enter your courses and grades to calculate your Quality Point Average.
+          All data processing happens locally in your browser - your academic records are never sent to any server.
         </p>
       </div>
 
@@ -258,8 +274,11 @@ const QpaCalculator = () => {
         </Button>
       </div>
 
-      <ScrollArea className="rounded-md border my-6" style={{ height: 'calc(100vh - 400px)', minHeight: '300px' }}>
-        <div className="flex flex-col gap-4 p-4">
+      <ScrollArea 
+        className="rounded-md border my-6" 
+        style={{ height: 'calc(100vh - 400px)', minHeight: '300px' }}
+      >
+        <div ref={scrollContainerRef} className="flex flex-col gap-4 p-4">
           {semesters.map((semester, index) => {
             const semesterGpa = calculateSemesterGpa(semester.courses);
             return (
@@ -294,30 +313,13 @@ const QpaCalculator = () => {
                       <span className="font-semibold">{semesterGpa}</span>
                     </div>
                   </div>
-                  {semesters.length > 1 ? (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the semester
-                            and all associated course data.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => removeSemester(semester.id)}>Continue</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  ) : (
-                    <div className="w-9 h-9" />
-                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeSemester(semester.id)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
@@ -337,19 +339,25 @@ const QpaCalculator = () => {
                           value={course.units === '' ? '' : String(course.units)}
                           onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
                         />
-                        <Select value={course.grade || "NO_GRADE"} onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}>
-                          <SelectTrigger className={cn("w-full md:w-[120px] hover:border-primary/50 transition-colors", (!course.grade || course.grade === "NO_GRADE") && "text-muted-foreground")}>
-                            <SelectValue placeholder="Select Grade" />
-                          </SelectTrigger>
-                          <SelectContent position="popper">
-                            <SelectItem value="NO_GRADE" className="text-muted-foreground">No Grade</SelectItem>
-                            {Object.entries(gradePoints)
-                              .filter(([grade]) => grade !== "NO_GRADE")
-                              .map(([grade]) => (
-                                <SelectItem key={grade} value={grade}>{grade}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        
+                        <CustomSelect 
+                          options={[
+                            { value: "NO_GRADE", label: "No Grade" },
+                            { value: "A", label: "A" },
+                            { value: "B", label: "B" },
+                            { value: "C", label: "C" },
+                            { value: "D", label: "D" },
+                            { value: "F", label: "F" }
+                          ]}
+                          value={course.grade || "NO_GRADE"}
+                          onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}
+                          className="w-full md:w-[120px]"
+                          triggerClassName={cn(
+                            "hover:border-primary/50 transition-colors", 
+                            (!course.grade || course.grade === "NO_GRADE") && "text-muted-foreground"
+                          )}
+                        />
+                        
                         <Button variant="ghost" size="sm" onClick={() => removeCourse(semester.id, course.id)} className="w-full md:w-auto hover:text-primary transition-colors justify-center">
                           <Trash className="h-4 w-4" />
                         </Button>

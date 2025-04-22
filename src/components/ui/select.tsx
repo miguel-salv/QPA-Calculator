@@ -5,6 +5,7 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { IsolatedPortal } from "./isolated-portal"
 
 const Select = SelectPrimitive.Root
 
@@ -71,16 +72,16 @@ const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
+  <IsolatedPortal>
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-[9999] w-[var(--radix-select-trigger-width)] min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "w-[var(--radix-select-trigger-width)] min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
         className
       )}
       position={position}
+      sideOffset={4}
+      collisionPadding={20}
       {...props}
     >
       <SelectPrimitive.Viewport
@@ -93,7 +94,7 @@ const SelectContent = React.forwardRef<
         {children}
       </SelectPrimitive.Viewport>
     </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
+  </IsolatedPortal>
 ))
 SelectContent.displayName = SelectPrimitive.Content.displayName
 

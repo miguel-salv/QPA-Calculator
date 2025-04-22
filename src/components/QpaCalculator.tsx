@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast"
 import { parseCMUTranscript } from '@/lib/utils';
 import { cn } from "@/lib/utils";
 import { CustomSelect } from "@/components/ui/custom-select";
+import '@/styles/components/qpa-calculator.css';
 
 interface Course {
   id: string;
@@ -236,106 +237,101 @@ const QpaCalculator = () => {
   };
 
   return (
-    <div className="w-full mx-auto space-y-6 pb-12">
-      <div className="max-w-2xl mx-auto text-center space-y-3 sm:space-y-4 mb-6 sm:mb-8 pt-2">
-        <p className="text-sm sm:text-base text-muted-foreground font-medium">
+    <div className="qpa-container">
+      <div className="qpa-intro">
+        <p className="qpa-intro-text">
           Enter your courses and grades to calculate your Quality Point Average.
           All data processing happens locally in your browser - your academic records are never sent to any server.
         </p>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+      <div className="qpa-actions">
         <input
           type="file"
           accept=".pdf"
           onChange={handleFileUpload}
-          className="hidden"
+          className="file-input-hidden"
           ref={fileInputRef}
         />
         <Button 
-          className="w-full sm:w-auto py-5 sm:py-2 text-sm sm:text-base" 
+          className="import-button" 
           onClick={() => fileInputRef.current?.click()}
         >
-          <Upload className="h-4 w-4 mr-2" />
+          <Upload className="button-icon" />
           Import from Academic Record
         </Button>
         <Button 
-          className="w-full sm:w-auto py-5 sm:py-2 text-sm sm:text-base" 
+          className="add-semester-button" 
           variant="outline" 
           onClick={addSemester}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="button-icon" />
           Add Semester Manually
         </Button>
       </div>
 
       <ScrollArea 
-        className="rounded-md border my-4 sm:my-6 mx-auto" 
-        style={{ 
-          height: 'min(calc(100vh - 400px), 600px)',
-          minHeight: '100px',
-          maxHeight: '600px' 
-        }}
+        className="semester-scroll-area" 
       >
-        <div ref={scrollContainerRef} className="flex flex-col gap-4 p-4">
+        <div ref={scrollContainerRef} className="semester-list">
           {semesters.map((semester, index) => {
             const semesterGpa = calculateSemesterGpa(semester.courses);
             return (
-              <Card key={semester.id} className="mb-4">
-                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-2 min-h-[48px]">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full">
+              <Card key={semester.id} className="semester-card">
+                <CardHeader className="semester-header">
+                  <div className="semester-header-content">
                     {semester.isEditing ? (
                       <Input
                         type="text"
                         value={semester.name}
                         onChange={(e) => updateSemesterName(semester.id, e.target.value)}
-                        className="w-full sm:w-2/3 md:w-1/3 font-semibold"
+                        className="semester-name-input"
                         placeholder={`Semester ${index + 1}`}
                         onBlur={() => toggleSemesterEdit(semester.id)}
                         autoFocus
                       />
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-semibold text-base sm:text-lg">{semester.name}</h3>
+                      <div className="semester-name-row">
+                        <h3 className="semester-name">{semester.name}</h3>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleSemesterEdit(semester.id)}
-                          className="h-6 w-6 p-0 hover:bg-transparent opacity-70 hover:opacity-100 transition-opacity"
+                          className="semester-edit-button"
                         >
-                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                          <Pencil className="semester-edit-icon" />
                         </Button>
                       </div>
                     )}
-                    <div className="flex items-center sm:ml-auto">
-                      <span className="text-xs sm:text-sm text-muted-foreground mr-2">Semester GPA:</span>
-                      <span className="font-semibold">{semesterGpa}</span>
+                    <div className="semester-gpa-container">
+                      <span className="semester-gpa-label">Semester GPA:</span>
+                      <span className="semester-gpa-value">{semesterGpa}</span>
                     </div>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    className="sm:ml-2 h-8 w-8 p-0"
+                    className="semester-delete-button"
                     onClick={() => removeSemester(semester.id)}
                   >
-                    <Trash className="h-4 w-4" />
+                    <Trash className="button-icon" />
                   </Button>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 sm:space-y-2">
+                <CardContent className="card-content">
+                  <div className="course-list">
                     {semester.courses.map(course => (
-                      <div key={course.id} className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:items-center sm:space-x-2">
+                      <div key={course.id} className="course-row">
                         <Input
                           type="text"
                           placeholder="Course Name (Optional)"
-                          className="w-full sm:w-1/2 md:w-1/3 hover:border-primary/50 transition-colors text-sm sm:text-base h-9 sm:h-10"
+                          className="course-name-input"
                           value={course.name}
                           onChange={(e) => updateCourse(semester.id, course.id, 'name', e.target.value)}
                         />
                         <Input
                           type="number"
                           placeholder="Units"
-                          className="w-full sm:w-1/4 md:w-1/6 hover:border-primary/50 transition-colors text-sm sm:text-base h-9 sm:h-10"
+                          className="course-units-input"
                           value={course.units === '' ? '' : String(course.units)}
                           onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
                         />
@@ -351,10 +347,9 @@ const QpaCalculator = () => {
                           ]}
                           value={course.grade || "NO_GRADE"}
                           onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}
-                          className="w-full sm:w-[150px] md:w-[120px]"
+                          className="course-grade-select"
                           triggerClassName={cn(
-                            "hover:border-primary/50 transition-colors h-9 sm:h-10", 
-                            (!course.grade || course.grade === "NO_GRADE") && "text-muted-foreground"
+                            (!course.grade || course.grade === "NO_GRADE") && "no-grade-text"
                           )}
                         />
                         
@@ -362,9 +357,9 @@ const QpaCalculator = () => {
                           variant="ghost" 
                           size="sm" 
                           onClick={() => removeCourse(semester.id, course.id)} 
-                          className="w-full sm:w-auto h-9 sm:h-10 hover:text-primary transition-colors justify-center"
+                          className="course-delete-button"
                         >
-                          <Trash className="h-4 w-4" />
+                          <Trash className="button-icon" />
                         </Button>
                       </div>
                     ))}
@@ -372,9 +367,9 @@ const QpaCalculator = () => {
                       variant="secondary" 
                       size="sm" 
                       onClick={() => addCourse(semester.id)} 
-                      className="w-full sm:w-auto mt-3 py-2 hover:text-primary transition-colors"
+                      className="add-course-button"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="button-icon" />
                       Add Course
                     </Button>
                   </div>
@@ -385,10 +380,10 @@ const QpaCalculator = () => {
         </div>
       </ScrollArea>
 
-      <Separator className="my-4 sm:my-6" />
-      <div className="text-center flex flex-col items-center justify-center mb-4 mt-2">
-        <h3 className="text-base sm:text-lg md:text-xl font-semibold text-center">Your QPA:</h3>
-        <p className="text-2xl md:text-3xl font-bold text-primary text-center">{qpa}</p>
+      <Separator className="qpa-separator" />
+      <div className="qpa-result">
+        <h3 className="qpa-label">Your QPA:</h3>
+        <p className="qpa-value">{qpa}</p>
       </div>
     </div>
   );

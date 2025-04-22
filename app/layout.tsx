@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
+import '@/styles/components/layout.css';
 import { FloatingElementsProvider } from '@/hooks/floating-elements';
 import { Toaster } from "@/components/ui/toaster";
 
@@ -26,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} root-body`}>
         <FloatingElementsProvider>
           {children}
           <Toaster />

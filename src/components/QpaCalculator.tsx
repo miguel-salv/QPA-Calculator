@@ -380,7 +380,6 @@ const QpaCalculator = () => {
         </div>
       </ScrollArea>
 
-      <Separator className="qpa-separator" />
       <div className="qpa-result">
         <h3 className="qpa-label">Your QPA:</h3>
         <p className="qpa-value">{qpa}</p>

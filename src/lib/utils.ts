@@ -2,6 +2,9 @@ import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf';
 
+// Import workers directly (will be properly handled by webpack)
+import PDFWorker from 'pdfjs-dist/build/pdf.worker.min.js';
+
 interface CourseData {
   name: string;
   units: string;
@@ -22,11 +25,8 @@ let isWorkerInitialized = false;
 async function initPdfLib() {
   if (typeof window === 'undefined' || isWorkerInitialized) return;
   try {
-    const workerPath = process.env.NODE_ENV === 'development' 
-      ? 'pdfjs-dist/legacy/build/pdf.worker.js'
-      : 'pdfjs-dist/build/pdf.worker.min.js';
-    const worker = await import(workerPath);
-    GlobalWorkerOptions.workerSrc = worker.default;
+    // Use the directly imported worker
+    GlobalWorkerOptions.workerSrc = PDFWorker;
     isWorkerInitialized = true;
   } catch (error) {
     console.error('Failed to initialize PDF.js worker:', error);

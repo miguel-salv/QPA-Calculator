@@ -24,7 +24,10 @@ const nextConfig: NextConfig = {
         ...config.module.rules,
         {
           test: /pdf\.worker\.(min\.)?js/,
-          type: 'asset/resource'
+          type: 'asset/resource',
+          generator: {
+            filename: 'static/chunks/[name].[hash][ext]'
+          }
         }
       ]
     };

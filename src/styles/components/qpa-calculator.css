@@ -7,17 +7,18 @@
 }
 
 .qpa-intro {
-  max-width: 42rem; /* 2xl */
+  max-width: 42rem;
   margin: 0 auto;
   text-align: center;
-  padding-top: 0rem; /* Reduced from 0.5rem to make spacing smaller */
+  padding-top: 0rem;
 }
 
 .qpa-intro-text {
   font-size: 0.875rem;
   color: var(--color-muted-foreground);
+  margin-top: -1rem;
   font-weight: 500;
-  opacity: 0.75; /* Added opacity to make intro text more transparent */
+  opacity: 0.75;
 }
 
 .qpa-actions {
@@ -37,6 +38,12 @@
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
   font-size: 0.875rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.import-button:hover {
+  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.8);
+  color: var(--color-primary);
 }
 
 .add-semester-button {
@@ -44,6 +51,13 @@
   padding-top: 1.25rem;
   padding-bottom: 1.25rem;
   font-size: 0.875rem;
+  margin-bottom: 1rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.add-semester-button:hover {
+  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.8);
+  color: var(--color-primary);
 }
 
 .button-icon {
@@ -52,13 +66,19 @@
   margin-right: 0.5rem;
 }
 
+.semester-delete-button .button-icon,
+.course-delete-button .button-icon {
+  margin-right: 0;
+}
+
 .semester-scroll-area {
   border-radius: 0.375rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid hsl(0 0% 90%);
   margin: 1rem auto;
   height: min(calc(100vh - 400px), 550px);
   min-height: 100px;
   max-height: 550px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .semester-list {
@@ -69,7 +89,7 @@
 }
 
 .semester-card {
-  margin-bottom: 0.75rem; /* Reduced from 1rem */
+  margin-bottom: 0.75rem;
 }
 
 .semester-header {
@@ -77,8 +97,8 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 0.375rem; /* Reduced from 0.5rem */
-  min-height: 42px; /* Reduced from 48px */
+  padding-bottom: 0.375rem;
+  min-height: 42px;
   width: 100%;
 }
 
@@ -87,13 +107,13 @@
   flex-direction: column;
   width: 100%;
   justify-content: space-between;
-  margin-bottom: 6px; /* Reduced from 8px */
+  margin-bottom: 6px;
 }
 
 .semester-name-input {
   width: 100%;
   font-weight: 600;
-  font-size: 0.875rem; /* Added font size */
+  font-size: 0.875rem;
 }
 
 .semester-name-row {
@@ -135,7 +155,7 @@
   font-size: 0.75rem;
   color: var(--color-muted-foreground);
   margin-right: 0.5rem;
-  opacity: 0.75; /* Added opacity to make text more transparent */
+  opacity: 0.75;
 }
 
 .semester-gpa-value {
@@ -155,12 +175,12 @@
 }
 
 .semester-delete-button:hover {
-  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.15);
+  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.8);
 }
 
 .semester-delete-button:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 255, 193, 7), 0.4);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 255, 193, 7), 1);
 }
 
 .course-list {
@@ -172,13 +192,13 @@
 .course-row {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* Reduced from 0.75rem */
+  gap: 0.75rem;
 }
 
 .course-name-input {
   width: 100%;
   transition: border-color 0.2s;
-  font-size: 0.8125rem; /* Reduced from 0.875rem */
+  font-size: 0.8125rem;
   height: 2.25rem;
 }
 
@@ -189,7 +209,7 @@
 .course-units-input {
   width: 100%;
   transition: border-color 0.2s;
-  font-size: 0.8125rem; /* Reduced from 0.875rem */
+  font-size: 0.8125rem;
   height: 2.25rem;
 }
 
@@ -223,13 +243,13 @@
 }
 
 .course-delete-button:hover {
-  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.15);
+  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.8);
   color: var(--color-primary);
 }
 
 .course-delete-button:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 255, 193, 7), 0.4);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 255, 193, 7), 1);
 }
 
 .add-course-button {
@@ -237,15 +257,18 @@
   margin-top: 0.75rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-  transition: color 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .add-course-button:hover {
+  background-color: rgba(var(--accent-rgb, 255, 193, 7), 0.8);
   color: var(--color-primary);
 }
 
 .qpa-separator {
   margin: 1rem 0;
+  height: 1px;
+  background-color: hsl(0 0% 90%);
 }
 
 .qpa-result {
@@ -254,8 +277,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0rem;
-  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
 }
 
 .qpa-label {
@@ -271,7 +294,6 @@
   text-align: center;
 }
 
-/* Spacing utilities */
 .space-y-2 {
   display: flex;
   flex-direction: column;
@@ -300,7 +322,6 @@
   gap: 1rem;
 }
 
-/* Media queries */
 @media (min-width: 640px) {
   .qpa-intro-text {
     font-size: 1rem;
@@ -351,7 +372,7 @@
 
   .semester-gpa-label {
     font-size: 0.875rem;
-    opacity: 0.75; /* Maintained opacity for consistency */
+    opacity: 0.75;
   }
 
   .course-row {
@@ -362,13 +383,13 @@
 
   .course-name-input {
     width: 50%;
-    font-size: 0.875rem; /* Reduced from 1rem */
+    font-size: 0.875rem;
     height: 2.5rem;
   }
 
   .course-units-input {
     width: 25%;
-    font-size: 0.875rem; /* Reduced from 1rem */
+    font-size: 0.875rem;
     height: 2.5rem;
   }
 
@@ -425,9 +446,8 @@
   }
 }
 
-/* Custom card padding overrides */
 .semester-card .semester-header {
-  padding: 1rem; /* Reduced from default 1.5rem (p-6) */
+  padding: 1rem;
 }
 
 .semester-card .card-content {

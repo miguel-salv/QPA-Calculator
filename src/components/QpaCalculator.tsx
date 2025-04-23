@@ -34,7 +34,7 @@ const gradePoints: { [key: string]: number | null } = {
   "B": 3.0,
   "C": 2.0,
   "D": 1.0,
-  "F": 0.0,
+  "R": 0.0,
   "NO_GRADE": null
 };
 
@@ -191,7 +191,10 @@ const QpaCalculator = () => {
   }, [semesters]);
 
   const handleUnitsChange = (semesterId: string, courseId: string, value: string) => {
-    updateCourse(semesterId, courseId, 'units', value === '' ? '' : parseFloat(value));
+    // If the value is empty, keep it as empty string
+    // Otherwise, convert to integer by removing the decimal part
+    const processedValue = value === '' ? '' : Math.floor(parseFloat(value));
+    updateCourse(semesterId, courseId, 'units', processedValue);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -329,11 +332,17 @@ const QpaCalculator = () => {
                           onChange={(e) => updateCourse(semester.id, course.id, 'name', e.target.value)}
                         />
                         <Input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                           placeholder="Units"
                           className="course-units-input"
                           value={course.units === '' ? '' : String(course.units)}
-                          onChange={(e) => handleUnitsChange(semester.id, course.id, e.target.value)}
+                          onChange={(e) => {
+                            // Only allow integer values by removing any non-digit characters
+                            const sanitizedValue = e.target.value.replace(/[^0-9]/g, '');
+                            handleUnitsChange(semester.id, course.id, sanitizedValue);
+                          }}
                         />
                         
                         <CustomSelect 
@@ -343,10 +352,10 @@ const QpaCalculator = () => {
                             { value: "B", label: "B" },
                             { value: "C", label: "C" },
                             { value: "D", label: "D" },
-                            { value: "F", label: "F" }
+                            { value: "R", label: "R" }
                           ]}
                           value={course.grade || "NO_GRADE"}
-                          onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value === "NO_GRADE" ? "" : value)}
+                          onValueChange={(value) => updateCourse(semester.id, course.id, 'grade', value)}
                           className="course-grade-select"
                           triggerClassName={cn(
                             (!course.grade || course.grade === "NO_GRADE") && "no-grade-text"

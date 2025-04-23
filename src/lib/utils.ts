@@ -107,9 +107,13 @@ export async function parseCMUTranscript(file: File): Promise<SemesterData[]> {
                   potentialGrade, 
                   'at index', j);
               }
+              
+              // Convert units to integer by removing decimals
+              const formattedUnits = Math.floor(units).toString();
+              
               const course: CourseData = {
                 name: `${potentialCourseNum}: ${potentialCourseName}`,
-                units: potentialUnits,
+                units: formattedUnits,
                 grade: /^([ABCDF][+-]?|AD)$/i.test(potentialGrade) ? potentialGrade : ""
               };
               semesters[i].courses.push(course);

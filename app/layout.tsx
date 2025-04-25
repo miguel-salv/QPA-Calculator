@@ -4,6 +4,7 @@ import './globals.css';
 import '@/styles/components/layout.css';
 import { FloatingElementsProvider } from '@/hooks/floating-elements';
 import { Toaster } from "@/components/ui/toaster";
+import Head from "next/head";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,11 +31,20 @@ export const metadata: Metadata = {
     siteName: 'CMU QPA Calculator',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: '/android-chrome-192x192.png',
+        width: 192,
+        height: 192,
+        alt: 'CMU QPA Calculator Logo',
+      }
+    ],
   },
   twitter: {
     title: 'CMU QPA Calculator',
     description: 'Calculate your QPA (Quality Point Average) for CMU courses.',
     card: 'summary',
+    images: ['/android-chrome-192x192.png'],
   },
   icons: {
     icon: [
@@ -45,8 +55,12 @@ export const metadata: Metadata = {
     apple: [
       { url: '/apple-touch-icon.png' }
     ],
+    shortcut: [{ url: '/favicon.ico' }],
   },
-  manifest: '/site.webmanifest'
+  manifest: '/site.webmanifest',
+  other: {
+    'google-site-verification': '_moVArDPSJ04UvvM6ImLsYe0vs9WjuMlWi34_sv2XZw',
+  }
 };
 
 export default function RootLayout({
@@ -56,6 +70,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} root-body`}>
         <FloatingElementsProvider>
           {children}

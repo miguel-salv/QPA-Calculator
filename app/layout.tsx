@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   description: 'Calculate your QPA (Quality Point Average) for CMU courses.',
   metadataBase: new URL('https://cmu-qpa.pages.dev'),
   authors: [{ name: 'Miguel Salvacion' }],
+  publisher: 'Miguel Salvacion',
   generator: 'Next.js',
   applicationName: 'CMU QPA Calculator',
   keywords: ['CMU', 'QPA', 'Calculator', 'Carnegie Mellon University', 'GPA'],
@@ -68,11 +69,33 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'CMU QPA Calculator',
+    description: 'Calculate your QPA (Quality Point Average) for CMU courses.',
+    url: 'https://cmu-qpa.pages.dev',
+    author: {
+      '@type': 'Person',
+      name: 'Miguel Salvacion',
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'Miguel Salvacion',
+    },
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'Web',
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} root-body`}>
         <FloatingElementsProvider>
